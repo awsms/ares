@@ -170,6 +170,13 @@ Presentation::Presentation() {
   optionSettingsAction.setText("Options" ELLIPSIS).setIcon(Icon::Action::Settings).onActivate([&] {
     settingsWindow.show("Options");
   });
+#if ARES_ENABLE_RCHEEVOS
+  achievementSettingsAction.setText("Achievements" ELLIPSIS).setIcon(Icon::Action::Bookmark).onActivate([&] {
+    settingsWindow.show("Achievements");
+  });
+#else
+  achievementSettingsAction.setVisible(false);
+#endif
   firmwareSettingsAction.setText("Firmware" ELLIPSIS).setIcon(Icon::Emblem::Binary).onActivate([&] {
     settingsWindow.show("Firmware");
   });
@@ -231,8 +238,18 @@ Presentation::Presentation() {
     Program::Guard guard;
     program.load(emulator, emulator->game->location);
   });
+  achievementsViewerAction.setText("Achievements").setIcon(Icon::Action::Bookmark).onActivate([&] {
+    toolsWindow.show("Achievements");
+  });
+  leaderboardsViewerAction.setText("Leaderboards").setIcon(Icon::Emblem::Text).onActivate([&] {
+    toolsWindow.show("Leaderboards");
+  });
+  challengesViewerAction.setText("Challenges").setIcon(Icon::Emblem::Text).onActivate([&] {
+    toolsWindow.show("Challenges");
+  });
   frameAdvance.setText("Frame Advance").setIcon(Icon::Media::Play).onActivate([&] {
     Program::Guard guard;
+    if(retroAchievements.hardcore()) return;
     if (!program.paused) program.pause(true);
     program.requestFrameAdvance = true;
   });
@@ -260,6 +277,7 @@ Presentation::Presentation() {
   tapeViewerAction.setText("Tape").setIcon(Icon::Device::Tape).onActivate([&] {
     toolsWindow.show("Tape");
   });
+  refreshToolsMenu();
 
   helpMenu.setText("Help");
   aboutAction.setText("About" ELLIPSIS).setIcon(Icon::Prompt::Question).onActivate([&] {
@@ -541,8 +559,9 @@ auto Presentation::loadEmulator() -> void {
     systemMenu.setVisible();
 
     refreshSystemMenu();
-
     toolsMenu.setVisible(true);
+    toolsAchievementsVisibilityInitialized = false;
+    refreshToolsMenu();
     pauseEmulation.setChecked(false);
   }
 
@@ -655,6 +674,8 @@ auto Presentation::refreshSystemMenu() -> void {
   MenuItem reset{&systemMenu};
   reset.setText("Reset").setIcon(Icon::Action::Refresh).onActivate([&] {
     Program::Guard guard;
+    program.clearOsd();
+    retroAchievements.reset();
     emulator->root->power(true);
     program.showMessage("System reset");
   });
@@ -669,6 +690,19 @@ auto Presentation::refreshSystemMenu() -> void {
   });
 }
 
+auto Presentation::refreshToolsMenu() -> void {
+  auto achievementsVisible = settings.general.retroAchievements && retroAchievements.hasUser();
+  if(toolsAchievementsVisibilityInitialized && toolsAchievementsVisible == achievementsVisible) return;
+  toolsAchievementsVisibilityInitialized = true;
+  toolsAchievementsVisible = achievementsVisible;
+
+  toolsMenuSeparatorB.setVisible(achievementsVisible);
+  achievementsViewerAction.setVisible(achievementsVisible);
+  leaderboardsViewerAction.setVisible(achievementsVisible);
+  challengesViewerAction.setVisible(achievementsVisible);
+  toolsMenuSeparatorC.setVisible(achievementsVisible);
+}
+
 auto Presentation::unloadEmulator(bool reloading) -> void {
   setTitle({ares::Name, " ", ares::Version});
   setAssociatedFile();
@@ -677,6 +711,7 @@ auto Presentation::unloadEmulator(bool reloading) -> void {
   systemMenu.reset();
 
   toolsMenu.setVisible(false);
+  refreshToolsMenu();
 }
 
 auto Presentation::showIcon(bool visible) -> void {

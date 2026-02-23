@@ -77,6 +77,7 @@ auto InputManager::createHotkeys() -> void {
   hotkeys.push_back(InputHotkey("Rewind").onPress([&] {
     Program::Guard guard;
     if(!emulator || program.fastForwarding) return;
+    if(retroAchievements.hardcore()) return;
     if(program.rewind.frequency == 0) {
       return program.showMessage("Please enable rewind support in the emulator settings first.");
     }
@@ -91,6 +92,7 @@ auto InputManager::createHotkeys() -> void {
   hotkeys.push_back(InputHotkey("Frame Advance").onPress([&] {
     Program::Guard guard;
     if(!emulator) return;
+    if(retroAchievements.hardcore()) return;
     if(!program.paused) program.pause(true);
     program.requestFrameAdvance = true;
   }));
@@ -136,7 +138,9 @@ auto InputManager::createHotkeys() -> void {
   hotkeys.push_back(InputHotkey("Reset System").onPress([&] {
     Program::Guard guard;
     if(!emulator) return;
+    program.clearOsd();
     emulator->root->power(true);
+    retroAchievements.reset();
   }));
 
   hotkeys.push_back(InputHotkey("Reload Current Game").onPress([&] {

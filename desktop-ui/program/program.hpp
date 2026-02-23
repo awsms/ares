@@ -1,4 +1,23 @@
+#include <deque>
+
 struct Program : ares::Platform {
+  enum class ToastAnchor : u8 {
+    TopLeft,
+    TopCenter,
+    TopRight,
+    MiddleLeft,
+    MiddleCenter,
+    MiddleRight,
+    BottomLeft,
+    BottomCenter,
+    BottomRight,
+  };
+
+  enum class ToastKind : u8 {
+    Generic,
+    Progress,
+  };
+
   auto create() -> void;
   auto main() -> void;
   auto quit() -> void;
@@ -31,7 +50,21 @@ struct Program : ares::Platform {
 
   //status.cpp
   auto updateMessage() -> void;
+  auto clearOsd() -> void;
   auto showMessage(const string&) -> void;
+  auto updateToast() -> void;
+  auto showToast(const string&, ToastAnchor anchor = ToastAnchor::BottomLeft) -> void;
+  auto showToast(
+    const string& title, const string& description, const std::vector<u32>& icon, u32 iconWidth, u32 iconHeight,
+    ToastAnchor anchor = ToastAnchor::BottomLeft, u64 visibleDurationMs = 5000, u64 fadeInDurationMs = 220,
+    u64 fadeOutDurationMs = 700, u32 accentColor = 0x2c7be5
+  ) -> void;
+  auto showProgressToast(
+    const string& progress, const std::vector<u32>& icon, u32 iconWidth, u32 iconHeight,
+    ToastAnchor anchor = ToastAnchor::BottomLeft, u64 visibleDurationMs = 5000, u64 fadeInDurationMs = 220,
+    u64 fadeOutDurationMs = 700, u32 accentColor = 0x2c7be5
+  ) -> void;
+  auto hideProgressToast() -> void;
   auto error(const string&) -> void;
 
   //utility.cpp
@@ -84,6 +117,7 @@ struct Program : ares::Platform {
   bool requestScreenshot = false;
   bool keyboardCaptured = false;
   atomic<bool> pendingKioskExit = false;
+  atomic<bool> pendingRetroAchievementsUiRefresh = false;
 
   struct State {
     u32 slot = 1;
@@ -105,11 +139,41 @@ struct Program : ares::Platform {
   struct Message {
     u64 timestamp = 0;
     string text;
+    u64 generation = 0;
   } message;
+  struct Toast {
+    u64 timestamp = 0;
+    u64 updatedTimestamp = 0;
+    string title;
+    string description;
+    std::vector<u32> icon;
+    u32 iconWidth = 0;
+    u32 iconHeight = 0;
+    ToastAnchor anchor = ToastAnchor::BottomLeft;
+    ToastKind kind = ToastKind::Generic;
+    u64 visibleDurationMs = 5000;
+    u64 fadeInDurationMs = 220;
+    u64 fadeOutDurationMs = 700;
+    u32 accentColor = 0x2c7be5;
+    u64 generation = 0;
+  } toast;
+
+  struct ToastOverlay {
+    std::vector<u32> pixels;
+    u32 width = 0;
+    u32 height = 0;
+    s32 x = 0;
+    s32 y = 0;
+  };
+
+  //osd.cpp
+  auto rasterizeToastOverlay(u32 targetWidth, u32 targetHeight, const Toast& toast) -> ToastOverlay;
 
   class Guard;
 
   std::vector<Message> messages;
+  std::deque<Toast> toasts;
+  u64 osdGeneration = 1;
   string configuration;
   atomic<u64> vblanksPerSecond = 0;
 

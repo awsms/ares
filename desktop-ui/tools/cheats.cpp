@@ -56,6 +56,10 @@ auto CheatEditor::construct() -> void {
 
   cheatList.onToggle([&](auto cell) {
     Program::Guard guard;
+    if(retroAchievements.hardcore() && cell.checked()) {
+      cell.setChecked(false);
+      return;
+    }
     if(auto item = cheatList.selected()) {
       if(auto cheat = item.attribute<Cheat*>("cheat")) {
         cheat->enabled = cell.checked();
@@ -147,6 +151,7 @@ auto CheatEditor::unload() -> void {
 
 auto CheatEditor::find(uint address) -> maybe<u32> {
   Program::Guard guard;
+  if(retroAchievements.hardcore()) return nothing;
   for(auto& cheat : cheats) {
     if(!cheat.enabled) continue;
     if(auto result = cheat.addressValuePairs.find(address)) return result();

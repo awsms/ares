@@ -147,6 +147,16 @@ auto Video::output(u32 width, u32 height) -> void {
   return instance->output(width, height);
 }
 
+auto Video::setOverlay(const u32* data, u32 width, u32 height, s32 x, s32 y) -> void {
+  lock_guard<recursive_mutex> lock(mutex);
+  instance->setOverlay(data, width, height, x, y);
+}
+
+auto Video::clearOverlay() -> void {
+  lock_guard<recursive_mutex> lock(mutex);
+  instance->clearOverlay();
+}
+
 auto Video::poll() -> void {
   lock_guard<recursive_mutex> lock(mutex);
   return instance->poll();

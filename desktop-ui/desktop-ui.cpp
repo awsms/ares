@@ -112,6 +112,7 @@ auto nall::main(Arguments arguments) -> void {
   Emulator::construct();
 
   settings.load();
+  retroAchievements.startupSetEncoreEnabled(settings.achievements.encore);
 
   if(arguments.find("--setting")) {
     string settingValue;
@@ -182,7 +183,23 @@ auto nall::main(Arguments arguments) -> void {
 
   program.startGameLoad.clear();
   std::vector<string> invalidKioskPaths;
+#if ARES_ENABLE_RCHEEVOS
+  bool skipRaLoginValue = false;
+  u32 skipRaLoginCount = 0;
+#endif
   for(auto argument : arguments) {
+#if ARES_ENABLE_RCHEEVOS
+    if(argument == "--ra-login") {
+      skipRaLoginValue = true;
+      skipRaLoginCount = 2;
+      continue;
+    }
+    if(skipRaLoginValue && skipRaLoginCount > 0) {
+      skipRaLoginCount--;
+      if(skipRaLoginCount == 0) skipRaLoginValue = false;
+      continue;
+    }
+#endif
     if(file::exists(argument) || directory::exists(argument)) {
       program.startGameLoad.push_back(argument);
     } else if(program.kiosk) {

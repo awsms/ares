@@ -22,6 +22,7 @@ auto Program::identify(const string& filename) -> std::shared_ptr<Emulator> {
 auto Program::load(std::shared_ptr<Emulator> emulator, string location) -> bool {
   Program::Guard guard;
   unload();
+  clearOsd();
 
   ::emulator = emulator;
 
@@ -76,6 +77,9 @@ auto Program::load(string location) -> bool {
   presentation.showIcon(false);
   if(settings.video.adaptiveSizing  && !startPseudoFullScreen) presentation.resizeWindow();
   if(toolsWindowConstructed) {
+    achievementsViewer.reload();
+    leaderboardsViewer.reload();
+    challengesViewer.reload();
     manifestViewer.reload();
     cheatEditor.reload();
     memoryEditor.reload();
@@ -114,6 +118,7 @@ auto Program::load(string location) -> bool {
   presentation.loadEmulators();
 
   configuration = emulator->root->attribute("configuration");
+  retroAchievements.gameLoaded();
 
   if(program.startSaveStateSlot) {
     if(stateLoad(program.startSaveStateSlot.integer())) {
@@ -133,6 +138,8 @@ auto Program::unload() -> void {
 
   settings.save();
   clearUndoStates();
+  retroAchievements.gameUnloaded();
+  clearOsd();
   showMessage({"Unloaded ", Location::prefix(emulator->game->location)});
   emulator->unload();
   screens.clear();
@@ -142,6 +149,9 @@ auto Program::unload() -> void {
   presentation.unloadEmulator();
   if(toolsWindowConstructed) {
     toolsWindow.setVisible(false);
+    achievementsViewer.unload();
+    leaderboardsViewer.unload();
+    challengesViewer.unload();
     manifestViewer.unload();
     cheatEditor.unload();
     memoryEditor.unload();
@@ -156,4 +166,5 @@ auto Program::unload() -> void {
   configuration = "";
   ruby::video.clear();
   ruby::audio.clear();
+  if(!kiosk) presentation.refreshToolsMenu();
 }

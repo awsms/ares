@@ -35,6 +35,7 @@ auto pLineEdit::construct() -> void {
 
   setBackgroundColor(state().backgroundColor);
   setEditable(state().editable);
+  setMasked(state().masked);
   setForegroundColor(state().foregroundColor);
   setText(state().text);
 }
@@ -53,6 +54,10 @@ auto pLineEdit::setBackgroundColor(Color color) -> void {
 
 auto pLineEdit::setEditable(bool editable) -> void {
   [(CocoaLineEdit*)cocoaView setEditable:editable];
+}
+
+auto pLineEdit::setMasked(bool masked) -> void {
+  [[(CocoaLineEdit*)cocoaView cell] setEchosBullets:masked];
 }
 
 auto pLineEdit::setForegroundColor(SystemColor color) -> void {

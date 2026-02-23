@@ -4,6 +4,97 @@ target_include_directories(sljit PUBLIC ../thirdparty)
 target_compile_definitions(sljit PUBLIC SLJIT_HAVE_CONFIG_PRE=1 SLJIT_HAVE_CONFIG_POST=1)
 target_compile_options(sljit PRIVATE $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang,GNU>:-Wno-conditional-uninitialized>)
 
+option(ARES_ENABLE_RCHEEVOS "Enable RetroAchievements support" ON)
+
+if(ARES_ENABLE_RCHEEVOS)
+  find_package(CURL CONFIG REQUIRED)
+
+  if(TARGET CURL::libcurl)
+    get_target_property(ARES_CURL_INCLUDE_DIRS CURL::libcurl INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(ARES_CURL_LINK_LIBRARIES CURL::libcurl INTERFACE_LINK_LIBRARIES)
+
+    foreach(
+      property_name
+      IMPORTED_IMPLIB
+      IMPORTED_IMPLIB_RELEASE
+      IMPORTED_IMPLIB_RELWITHDEBINFO
+      IMPORTED_IMPLIB_MINSIZEREL
+      IMPORTED_IMPLIB_DEBUG
+    )
+      get_target_property(_ares_curl_implib CURL::libcurl ${property_name})
+      if(_ares_curl_implib)
+        break()
+      endif()
+    endforeach()
+
+    foreach(
+      property_name
+      IMPORTED_LOCATION
+      IMPORTED_LOCATION_RELEASE
+      IMPORTED_LOCATION_RELWITHDEBINFO
+      IMPORTED_LOCATION_MINSIZEREL
+      IMPORTED_LOCATION_DEBUG
+    )
+      get_target_property(_ares_curl_location CURL::libcurl ${property_name})
+      if(_ares_curl_location)
+        break()
+      endif()
+    endforeach()
+
+    if(_ares_curl_implib AND NOT TARGET ares::curl)
+      add_library(ares-curl SHARED IMPORTED GLOBAL)
+      add_library(ares::curl ALIAS ares-curl)
+      set_target_properties(
+        ares-curl
+        PROPERTIES
+          IMPORTED_IMPLIB "${_ares_curl_implib}"
+          IMPORTED_LOCATION "${_ares_curl_location}"
+      )
+    endif()
+
+    unset(_ares_curl_implib)
+    unset(_ares_curl_location)
+  endif()
+
+  add_subdirectory(rcheevos)
+  target_enable_feature(rcheevos "RetroAchievements support")
+endif()
+# option(ARES_ENABLE_RCHEEVOS "Enable RetroAchievements support" ON)
+
+# if(ARES_ENABLE_RCHEEVOS)
+#   find_package(CURL CONFIG QUIET)
+#   if(NOT TARGET CURL::libcurl)
+#     find_package(CURL REQUIRED)
+#   endif()
+
+#   if(NOT TARGET CURL::libcurl)
+#     add_library(CURL::libcurl INTERFACE IMPORTED GLOBAL)
+#     set_target_properties(
+#       CURL::libcurl
+#       PROPERTIES
+#       INTERFACE_INCLUDE_DIRECTORIES "${CURL_INCLUDE_DIRS}"
+#       INTERFACE_LINK_LIBRARIES "${CURL_LIBRARIES}"
+#     )
+#   endif()
+
+#   add_subdirectory(rcheevos)
+#   target_enable_feature(rcheevos "RetroAchievements support")
+# endif()
+# # if(ARES_ENABLE_RCHEEVOS)
+# #   find_package(CURL REQUIRED GLOBAL)
+# #   if(NOT TARGET CURL::libcurl)
+# #     add_library(CURL::libcurl INTERFACE IMPORTED GLOBAL)
+# #     set_target_properties(
+# #       CURL::libcurl
+# #       PROPERTIES
+# #       INTERFACE_INCLUDE_DIRECTORIES "${CURL_INCLUDE_DIRS}"
+# #       INTERFACE_LINK_LIBRARIES "${CURL_LIBRARIES}"
+# #     )
+# #   endif()
+# #   add_subdirectory(rcheevos)
+# #   target_enable_feature(rcheevos "RetroAchievements support")
+# # endif()
+
 option(ARES_ENABLE_CHD "Enable CHD format support via libchdr" ON)
 
 if(ARES_ENABLE_CHD)

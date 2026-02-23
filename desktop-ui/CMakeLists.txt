@@ -7,6 +7,24 @@ add_executable(
   game-browser/game-browser.cpp
   program/program.cpp
   presentation/presentation.cpp
+  retroachievements/retroachievements.cpp
+  retroachievements/debug.cpp
+  retroachievements/platform/platform.cpp
+  retroachievements/platform/adapter.cpp
+  retroachievements/platform/adapter_registry.cpp
+  retroachievements/platform/fds.cpp
+  retroachievements/platform/hash_chd.cpp
+  retroachievements/platform/adapters/nintendo.cpp
+  retroachievements/platform/adapters/sega.cpp
+  retroachievements/platform/adapters/sony.cpp
+  retroachievements/platform/adapters/nec.cpp
+  retroachievements/platform/adapters/snk.cpp
+  retroachievements/platform/adapters/misc.cpp
+  retroachievements/http.cpp
+  retroachievements/client.cpp
+  retroachievements/auth.cpp
+  retroachievements/images.cpp
+  retroachievements/state_io.cpp
   settings/settings.cpp
   tools/tools.cpp
 )
@@ -28,6 +46,24 @@ set_source_files_properties(
   game-browser/game-browser.cpp
   program/program.cpp
   presentation/presentation.cpp
+  retroachievements/retroachievements.cpp
+  retroachievements/debug.cpp
+  retroachievements/platform/platform.cpp
+  retroachievements/platform/adapter.cpp
+  retroachievements/platform/adapter_registry.cpp
+  retroachievements/platform/fds.cpp
+  retroachievements/platform/hash_chd.cpp
+  retroachievements/platform/adapters/nintendo.cpp
+  retroachievements/platform/adapters/sega.cpp
+  retroachievements/platform/adapters/sony.cpp
+  retroachievements/platform/adapters/nec.cpp
+  retroachievements/platform/adapters/snk.cpp
+  retroachievements/platform/adapters/misc.cpp
+  retroachievements/http.cpp
+  retroachievements/client.cpp
+  retroachievements/auth.cpp
+  retroachievements/images.cpp
+  retroachievements/state_io.cpp
   settings/settings.cpp
   tools/tools.cpp
   PROPERTIES HEADER_FILE_ONLY FALSE
@@ -46,10 +82,32 @@ elseif(OS_LINUX OR OS_FREEBSD OR OS_OPENBSD)
 endif()
 
 target_include_directories(desktop-ui PRIVATE ${CMAKE_SOURCE_DIR})
+target_compile_definitions(desktop-ui PRIVATE ARES_ENABLE_RCHEEVOS=$<BOOL:${ARES_ENABLE_RCHEEVOS}>)
 target_link_libraries(
   desktop-ui
   PRIVATE ares::ruby ares::hiro ares::ares ares::mia ares::nall
 )
+
+if(ARES_ENABLE_RCHEEVOS)
+  target_link_libraries(desktop-ui PRIVATE libretro::rcheevos)
+
+  if(TARGET ares::curl)
+    target_link_libraries(desktop-ui PRIVATE ares::curl)
+  elseif(ARES_CURL_LINK_LIBRARIES)
+    target_link_libraries(desktop-ui PRIVATE ${ARES_CURL_LINK_LIBRARIES})
+  endif()
+
+  if(ARES_CURL_INCLUDE_DIRS)
+    set_source_files_properties(
+      retroachievements/http.cpp
+      retroachievements/images.cpp
+      PROPERTIES INCLUDE_DIRECTORIES "${ARES_CURL_INCLUDE_DIRS}"
+    )
+  endif()
+endif()
+# if(ARES_ENABLE_RCHEEVOS)
+#   target_link_libraries(desktop-ui PRIVATE CURL::libcurl libretro::rcheevos)
+# endif()
 
 if(ARES_ENABLE_CHD)
   target_link_libraries(desktop-ui PRIVATE chdr-static)

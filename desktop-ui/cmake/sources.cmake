@@ -27,10 +27,38 @@ target_sources(desktop-ui PRIVATE resource/resource.cpp resource/resource.hpp)
 target_sources(
   desktop-ui
   PRIVATE
+    retroachievements/retroachievements.hpp
+    retroachievements/retroachievements.cpp
+    retroachievements/debug.cpp
+    retroachievements/platform/adapter.hpp
+    retroachievements/platform/adapter.cpp
+    retroachievements/platform/adapter_registry.cpp
+    retroachievements/platform/fds.hpp
+    retroachievements/platform/fds.cpp
+    retroachievements/platform/platform.cpp
+    retroachievements/platform/hash_chd.hpp
+    retroachievements/platform/hash_chd.cpp
+    retroachievements/platform/adapters/nintendo.cpp
+    retroachievements/platform/adapters/sega.cpp
+    retroachievements/platform/adapters/sony.cpp
+    retroachievements/platform/adapters/nec.cpp
+    retroachievements/platform/adapters/snk.cpp
+    retroachievements/platform/adapters/misc.cpp
+    retroachievements/http.cpp
+    retroachievements/client.cpp
+    retroachievements/auth.cpp
+    retroachievements/images.cpp
+    retroachievements/state_io.cpp
+)
+
+target_sources(
+  desktop-ui
+  PRIVATE
     settings/audio.cpp
     settings/debug.cpp
     settings/drivers.cpp
     settings/emulators.cpp
+    settings/achievements.cpp
     settings/firmware.cpp
     settings/home.cpp
     settings/hotkeys.cpp

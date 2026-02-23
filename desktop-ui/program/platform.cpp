@@ -103,11 +103,31 @@ auto Program::video(ares::Node::Video::Screen node, const u32* data, u32 pitch, 
   }
 
   pitch >>= 2;
+  Program::Toast activeToast;
+  {
+    lock_guard<recursive_mutex> messageLock(_messageMutex);
+    activeToast = toast;
+  }
+  if(width == 0 || height == 0) {
+    ruby::video.clearOverlay();
+    ruby::video.unlock();
+    return;
+  }
+
+  auto overlay = rasterizeToastOverlay(outputWidth, outputHeight, activeToast);
+  if(!overlay.pixels.empty()) ruby::video.setOverlay(overlay.pixels.data(), overlay.width, overlay.height, overlay.x, overlay.y);
+  else ruby::video.clearOverlay();
+
   auto [output, length] = ruby::video.acquire(width, height);
   if(output) {
-    length >>= 2;
+    u32 outputPitch = length >> 2;
+    if(outputPitch < width) {
+      ruby::video.release();
+      ruby::video.unlock();
+      return;
+    }
     for(auto y : range(height)) {
-      memory::copy<u32>(output + y * length, data + y * pitch, width);
+      memory::copy<u32>(output + y * outputPitch, data + y * pitch, width);
     }
     ruby::video.release();
     ruby::video.output(outputWidth, outputHeight);

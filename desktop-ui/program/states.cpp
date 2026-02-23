@@ -10,6 +10,7 @@ auto Program::stateSave(u32 slot) -> bool {
 
   if(auto state = emulator->root->serialize()) {
     if(file::write(location, {state.data(), state.size()})) {
+      retroAchievements.stateSaved(slot);
       showMessage({"Saved state to slot ", slot});
       return true;
     }
@@ -22,6 +23,10 @@ auto Program::stateSave(u32 slot) -> bool {
 auto Program::stateLoad(u32 slot) -> bool {
   Program::Guard guard;
   if(!emulator) return false;
+  if(retroAchievements.hardcore()) {
+    showMessage({"Failed to load state from slot ", slot, " (RetroAchievements Hardcore mode is active)"});
+    return false;
+  }
 
   //Store current state for undo
   auto undoLocation = emulator->locate(emulator->game->location, {".blu"}, settings.paths.saves);
@@ -34,6 +39,8 @@ auto Program::stateLoad(u32 slot) -> bool {
   if(!memory.empty()) {
     serializer state{memory.data(), (u32)memory.size()};
     if(emulator->root->unserialize(state)) {
+      clearOsd();
+      retroAchievements.stateLoaded(slot);
       showMessage({"Loaded state from slot ", slot});
       return true;
     }
@@ -67,6 +74,7 @@ auto Program::undoStateLoad() -> bool {
   if(!memory.empty()) {
     serializer state{memory.data(), (u32)memory.size()};
     if(emulator->root->unserialize(state)) {
+      clearOsd();
       showMessage({"Loaded state from undo load file ", undoLocation});
       file::remove(undoLocation);
       return true;

@@ -100,6 +100,14 @@ struct VideoWGL : VideoDriver, OpenGL {
   auto release() -> void override {
   }
 
+  auto setOverlay(const u32* data, u32 width, u32 height, s32 x, s32 y) -> void override {
+    OpenGL::setOverlay(data, width, height, x, y);
+  }
+
+  auto clearOverlay() -> void override {
+    OpenGL::clearOverlay();
+  }
+
   auto output(u32 width, u32 height) -> void override {
     acquireContext();
     u32 windowWidth, windowHeight;

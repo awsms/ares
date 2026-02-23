@@ -1,0 +1,4 @@
+[submodule "thirdparty/rcheevos/rcheevos"]
+	path = thirdparty/rcheevos/rcheevos
+	url = https://github.com/RetroAchievements/rcheevos
+	branch = master

@@ -44,6 +44,8 @@ struct VideoDriver {
   virtual auto acquire(u32*& data, u32& pitch, u32 width, u32 height) -> bool { return false; }
   virtual auto release() -> void {}
   virtual auto output(u32 width = 0, u32 height = 0) -> void {}
+  virtual auto setOverlay(const u32* data, u32 width, u32 height, s32 x, s32 y) -> void {}
+  virtual auto clearOverlay() -> void {}
   virtual auto poll() -> void {}
 
 protected:
@@ -151,6 +153,8 @@ struct Video {
   auto acquire(u32 width, u32 height) -> Acquire;
   auto release() -> void;
   auto output(u32 width = 0, u32 height = 0) -> void;
+  auto setOverlay(const u32* data, u32 width, u32 height, s32 x, s32 y) -> void;
+  auto clearOverlay() -> void;
   auto poll() -> void;
 
   auto onUpdate(const std::function<void (u32, u32)>&) -> void;

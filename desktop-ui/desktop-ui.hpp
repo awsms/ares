@@ -1,6 +1,4 @@
 #include <ruby/ruby.hpp>
-//using namespace ruby;
-
 #include <hiro/hiro.hpp>
 using namespace hiro;
 
@@ -26,6 +24,7 @@ namespace ruby {
 #include "game-browser/game-browser.hpp"
 #include "program/program.hpp"
 #include "presentation/presentation.hpp"
+#include "retroachievements/retroachievements.hpp"
 #include "settings/settings.hpp"
 #include "tools/tools.hpp"
 

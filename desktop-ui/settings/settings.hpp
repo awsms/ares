@@ -80,7 +80,28 @@ struct Settings : Markup::Node {
     bool homebrewMode = false;
     bool forceInterpreter = false;
     bool noFilePrompt = false;
+    bool retroAchievements = false;
   } general;
+
+  struct Achievements {
+    string username;
+    string token;
+    bool encore = false;
+    bool hardcore = false;
+    bool osdEnable = true;
+    bool osdAchievements = true;
+    bool osdProgress = true;
+    bool osdMessages = true;
+    bool osdLeaderboards = true;
+    u32 osdDurationMs = 5000;
+    u32 osdFadeInMs = 220;
+    u32 osdFadeOutMs = 700;
+    string osdAccentColor = "Blue";
+    string osdPosition = "Bottom Left";
+    bool debugLogging = false;
+    bool debugProgress = true;
+    bool debugMemory = true;
+  } achievements;
 
   struct Rewind {
     u32 length = 100;
@@ -297,6 +318,88 @@ struct OptionSettings : VerticalLayout {
       Label megaDriveTmssHint{&megaDriveTmssLayout, Size{0, layoutVertSize}};
 };
 
+struct AchievementSettings : VerticalLayout {
+  auto construct() -> void;
+  auto refresh() -> void;
+  auto setVisible(bool visible = true) -> AchievementSettings&;
+  bool hardcoreToggleGuard = false;
+  bool wasLoggedIn = false;
+  string cachedAvatarUrl;
+  image cachedAvatarImage;
+
+  Label integrationLabel{this, Size{~0, 0}, 5};
+  HorizontalLayout integrationLayout{this, Size{~0, 0}, 5};
+    CheckLabel integrationOption{&integrationLayout, Size{0, 0}, 5};
+    Label integrationHint{&integrationLayout, Size{~0, layoutVertSize}};
+
+  Label accountLabel{this, Size{~0, 0}, 5};
+  HorizontalLayout usernameLayout{this, Size{~0, 0}, 5};
+    Label usernameLabel{&usernameLayout, Size{80_sx, 0}};
+    LineEdit usernameValue{&usernameLayout, Size{~0, 0}};
+  HorizontalLayout passwordLayout{this, Size{~0, 0}, 5};
+    Label passwordLabel{&passwordLayout, Size{80_sx, 0}};
+    LineEdit passwordValue{&passwordLayout, Size{~0, 0}};
+  HorizontalLayout accountButtonsLayout{this, Size{~0, 0}, 5};
+    Label accountStatus{&accountButtonsLayout, Size{~0, 0}};
+    Button loginButton{&accountButtonsLayout, Size{80, 0}};
+  Canvas profileTopGap{this, Size{~0, 4_sy}};
+  HorizontalLayout profileLayout{this, Size{~0, 0}, 5};
+    Canvas profileAvatar{&profileLayout, Size{48_sx, 48_sy}};
+    VerticalLayout profileTextLayout{&profileLayout, Size{~0, 0}, 2};
+      Label profileName{&profileTextLayout, Size{~0, 0}};
+      Label profilePoints{&profileTextLayout, Size{~0, 0}};
+    Canvas profileSpacer{&profileLayout, Size{1, 0}};
+    Button logoutButton{&profileLayout, Size{80, 0}};
+  Canvas profileBottomGap{this, Size{~0, 4_sy}};
+
+  Label behaviorLabel{this, Size{~0, 0}, 5};
+  HorizontalLayout encoreLayout{this, Size{~0, 0}, 5};
+    CheckLabel encoreOption{&encoreLayout, Size{0, 0}, 5};
+    Label encoreHint{&encoreLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout hardcoreLayout{this, Size{~0, 0}, 5};
+    CheckLabel hardcoreOption{&hardcoreLayout, Size{0, 0}, 5};
+    Label hardcoreHint{&hardcoreLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout osdEnableLayout{this, Size{~0, 0}, 5};
+    CheckLabel osdEnableOption{&osdEnableLayout, Size{0, 0}, 5};
+    Label osdEnableHint{&osdEnableLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout osdAchievementsLayout{this, Size{~0, 0}, 5};
+    CheckLabel osdAchievementsOption{&osdAchievementsLayout, Size{0, 0}, 5};
+    Label osdAchievementsHint{&osdAchievementsLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout osdProgressLayout{this, Size{~0, 0}, 5};
+    CheckLabel osdProgressOption{&osdProgressLayout, Size{0, 0}, 5};
+    Label osdProgressHint{&osdProgressLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout osdMessagesLayout{this, Size{~0, 0}, 5};
+    CheckLabel osdMessagesOption{&osdMessagesLayout, Size{0, 0}, 5};
+    Label osdMessagesHint{&osdMessagesLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout osdLeaderboardsLayout{this, Size{~0, 0}, 5};
+    CheckLabel osdLeaderboardsOption{&osdLeaderboardsLayout, Size{0, 0}, 5};
+    Label osdLeaderboardsHint{&osdLeaderboardsLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout osdDurationLayout{this, Size{~0, 0}, 5};
+    Label osdDurationLabel{&osdDurationLayout, Size{120_sx, 0}};
+    LineEdit osdDurationValue{&osdDurationLayout, Size{~0, 0}};
+  HorizontalLayout osdFadeInLayout{this, Size{~0, 0}, 5};
+    Label osdFadeInLabel{&osdFadeInLayout, Size{120_sx, 0}};
+    LineEdit osdFadeInValue{&osdFadeInLayout, Size{~0, 0}};
+  HorizontalLayout osdFadeOutLayout{this, Size{~0, 0}, 5};
+    Label osdFadeOutLabel{&osdFadeOutLayout, Size{120_sx, 0}};
+    LineEdit osdFadeOutValue{&osdFadeOutLayout, Size{~0, 0}};
+  HorizontalLayout osdAccentLayout{this, Size{~0, 0}, 5};
+    Label osdAccentLabel{&osdAccentLayout, Size{120_sx, 0}};
+    ComboButton osdAccentValue{&osdAccentLayout, Size{~0, 0}};
+  HorizontalLayout osdPositionLayout{this, Size{~0, 0}, 5};
+    Label osdPositionLabel{&osdPositionLayout, Size{120_sx, 0}};
+    ComboButton osdPositionValue{&osdPositionLayout, Size{~0, 0}};
+  HorizontalLayout debugLayout{this, Size{~0, 0}, 5};
+    CheckLabel debugOption{&debugLayout, Size{0, 0}, 5};
+    Label debugHint{&debugLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout debugProgressLayout{this, Size{~0, 0}, 5};
+    CheckLabel debugProgressOption{&debugProgressLayout, Size{0, 0}, 5};
+    Label debugProgressHint{&debugProgressLayout, Size{~0, layoutVertSize}};
+  HorizontalLayout debugMemoryLayout{this, Size{~0, 0}, 5};
+    CheckLabel debugMemoryOption{&debugMemoryLayout, Size{0, 0}, 5};
+    Label debugMemoryHint{&debugMemoryLayout, Size{~0, layoutVertSize}};
+};
+
 struct FirmwareSettings : VerticalLayout {
   auto construct() -> void;
   auto refresh() -> void;
@@ -472,6 +575,7 @@ struct SettingsWindow : Window {
       HotkeySettings hotkeySettings;
       EmulatorSettings emulatorSettings;
       OptionSettings optionSettings;
+      AchievementSettings achievementSettings;
       FirmwareSettings firmwareSettings;
       PathSettings pathSettings;
       DriverSettings driverSettings;
@@ -494,6 +598,7 @@ extern InputSettings& inputSettings;
 extern HotkeySettings& hotkeySettings;
 extern EmulatorSettings& emulatorSettings;
 extern OptionSettings& optionSettings;
+extern AchievementSettings& achievementSettings;
 extern FirmwareSettings& firmwareSettings;
 extern PathSettings& pathSettings;
 extern DriverSettings& driverSettings;

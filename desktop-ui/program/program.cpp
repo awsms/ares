@@ -4,6 +4,7 @@
 #include "states.cpp"
 #include "rewind.cpp"
 #include "status.cpp"
+#include "osd.cpp"
 #include "utility.cpp"
 #include "drivers.cpp"
 
@@ -16,6 +17,8 @@ auto Program::create() -> void {
   videoDriverUpdate();
   audioDriverUpdate();
   inputDriverUpdate();
+
+  retroAchievements.initialize();
 
   if(kiosk) {
     if(startFullScreen) videoFullScreenToggle();
@@ -73,11 +76,15 @@ auto Program::emulatorRunLoop(uintptr_t) -> void {
       continue;
     }
     if(!emulator) {
+      retroAchievements.pumpServerResponses();
+      retroAchievements.idle();
       usleep(20 * 1000);
       continue;
     }
 
     if(emulator && nall::GDB::server.isHalted()) {
+      retroAchievements.pumpServerResponses();
+      retroAchievements.idle();
       ruby::audio.clear();
       nall::GDB::server.updateLoop(); // sleeps internally
       continue;
@@ -86,6 +93,8 @@ auto Program::emulatorRunLoop(uintptr_t) -> void {
     bool defocused = settings.input.defocus == "Pause" && !ruby::video.fullScreen() && !presentation.focused();
 
     if(!emulator || (paused && !program.requestFrameAdvance) || defocused) {
+      retroAchievements.pumpServerResponses();
+      retroAchievements.idle();
       ruby::audio.clear();
       nall::GDB::server.updateLoop();
       usleep(20 * 1000);
@@ -97,7 +106,7 @@ auto Program::emulatorRunLoop(uintptr_t) -> void {
     nall::GDB::server.updateLoop();
 
     program.requestFrameAdvance = false;
-    if(!runAhead || fastForwarding || rewinding) {
+    if(!runAhead || fastForwarding || rewinding || retroAchievements.hardcore()) {
       emulator->root->run();
     } else {
       ares::setRunAhead(true);
@@ -110,6 +119,8 @@ auto Program::emulatorRunLoop(uintptr_t) -> void {
     }
 
     nall::GDB::server.updateLoop();
+    retroAchievements.pumpServerResponses();
+    retroAchievements.frame();
 
     if(settings.general.autoSaveMemory) {
       static u64 previousTime = chrono::timestamp();
@@ -143,6 +154,17 @@ auto Program::main() -> void {
   inputManager.pollHotkeys();
 
   updateMessage();
+  updateToast();
+  if(!kiosk) presentation.refreshToolsMenu();
+
+  if(program.pendingRetroAchievementsUiRefresh.exchange(false)) {
+    if(!kiosk) presentation.refreshToolsMenu();
+    if(toolsWindowConstructed) {
+      achievementsViewer.reload();
+      leaderboardsViewer.reload();
+      challengesViewer.reload();
+    }
+  }
 
   //If Platform::video() changed the screen resolution, resize the presentation window here.
   //Window operations must be performed from the main thread.
@@ -153,10 +175,15 @@ auto Program::main() -> void {
   }
 
   if(toolsWindowConstructed) {
+    achievementsViewer.liveRefresh();
+    leaderboardsViewer.liveRefresh();
     memoryEditor.liveRefresh();
     graphicsViewer.liveRefresh();
     propertiesViewer.liveRefresh();
     tapeViewer.liveRefresh();
+    if(settingsWindow.visible() && achievementSettings.visible()) {
+      achievementSettings.refresh();
+    }
   }
 }
 
@@ -170,6 +197,7 @@ auto Program::quit() -> void {
   worker.join();
   program._isRunning = false;
   unload();
+  retroAchievements.shutdown();
   Application::processEvents();
   Application::quit();
 

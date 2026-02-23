@@ -29,6 +29,10 @@ auto Program::paletteUpdate() -> void {
 
 auto Program::runAheadUpdate() -> void {
   Program::Guard guard;
+  if(retroAchievements.hardcore()) {
+    runAhead = false;
+    return;
+  }
   runAhead = settings.general.runAhead;
   if(!emulator) return;
   if(emulator->name == "Game Boy Advance") runAhead = false;  //crashes immediately

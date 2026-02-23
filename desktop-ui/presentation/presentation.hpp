@@ -9,9 +9,12 @@ struct Presentation : Window {
   auto showIcon(bool visible) -> void;
   auto loadShaders() -> void;
   auto refreshSystemMenu() -> void;
+  auto refreshToolsMenu() -> void;
 
   std::vector<string> shaderDirectories;
   static inline bool shaderArgApplied = false;
+  bool toolsAchievementsVisible = false;
+  bool toolsAchievementsVisibilityInitialized = false;
 
   MenuBar menuBar{this};
     Menu loadMenu{&menuBar};
@@ -57,6 +60,7 @@ struct Presentation : Window {
       MenuItem hotkeySettingsAction{&settingsMenu};
       MenuItem emulatorSettingsAction{&settingsMenu};
       MenuItem optionSettingsAction{&settingsMenu};
+      MenuItem achievementSettingsAction{&settingsMenu};
       MenuItem firmwareSettingsAction{&settingsMenu};
       MenuItem pathSettingsAction{&settingsMenu};
       MenuItem driverSettingsAction{&settingsMenu};
@@ -73,6 +77,10 @@ struct Presentation : Window {
       MenuItem frameAdvance{&toolsMenu};
       MenuItem reloadGame{&toolsMenu};
       MenuSeparator toolsMenuSeparatorB{&toolsMenu};
+      MenuItem achievementsViewerAction{&toolsMenu};
+      MenuItem leaderboardsViewerAction{&toolsMenu};
+      MenuItem challengesViewerAction{&toolsMenu};
+      MenuSeparator toolsMenuSeparatorC{&toolsMenu};
       MenuItem manifestViewerAction{&toolsMenu};
       MenuItem cheatEditorAction{&toolsMenu};
       MenuItem memoryEditorAction{&toolsMenu};

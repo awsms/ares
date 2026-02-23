@@ -1,6 +1,7 @@
 auto DebugSettings::construct() -> void {
   setCollapsible();
   setVisible(false);
+  bool suppressEnabledToggle = false;
 
   debugLabel.setText("GDB-Server").setFont(Font().setBold());
   portLayout.setAlignment(1);
@@ -34,6 +35,13 @@ auto DebugSettings::construct() -> void {
     enabled.setText("Enabled");
     enabled.setChecked(settings.debugServer.enabled);
     enabled.onToggle([&](){
+      if(suppressEnabledToggle) return;
+      if(enabled.checked() && !retroAchievements.confirmDisableHardcore("Enable Debug Server")) {
+        suppressEnabledToggle = true;
+        enabled.setChecked(false);
+        suppressEnabledToggle = false;
+        return;
+      }
       settings.debugServer.enabled = enabled.checked();
       serverRefresh();
       infoRefresh();

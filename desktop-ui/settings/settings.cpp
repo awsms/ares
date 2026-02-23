@@ -6,6 +6,7 @@
 #include "hotkeys.cpp"
 #include "emulators.cpp"
 #include "options.cpp"
+#include "achievements.cpp"
 #include "firmware.cpp"
 #include "paths.cpp"
 #include "drivers.cpp"
@@ -22,6 +23,7 @@ InputSettings& inputSettings = settingsWindow.inputSettings;
 HotkeySettings& hotkeySettings = settingsWindow.hotkeySettings;
 EmulatorSettings& emulatorSettings = settingsWindow.emulatorSettings;
 OptionSettings& optionSettings = settingsWindow.optionSettings;
+AchievementSettings& achievementSettings = settingsWindow.achievementSettings;
 FirmwareSettings& firmwareSettings = settingsWindow.firmwareSettings;
 PathSettings& pathSettings = settingsWindow.pathSettings;
 DebugSettings& debugSettings = settingsWindow.debugSettings;
@@ -109,6 +111,24 @@ auto Settings::process(bool load) -> void {
   bind(boolean, "General/HomebrewMode", general.homebrewMode);
   bind(boolean, "General/ForceInterpreter", general.forceInterpreter);
   bind(boolean, "General/NoFilePrompt", general.noFilePrompt);
+  bind(boolean, "General/RetroAchievements", general.retroAchievements);
+  bind(string,  "Achievements/Username", achievements.username);
+  bind(string,  "Achievements/Token", achievements.token);
+  bind(boolean, "Achievements/Encore", achievements.encore);
+  bind(boolean, "Achievements/Hardcore", achievements.hardcore);
+  bind(boolean, "Achievements/OsdEnable", achievements.osdEnable);
+  bind(boolean, "Achievements/OsdAchievements", achievements.osdAchievements);
+  bind(boolean, "Achievements/OsdProgress", achievements.osdProgress);
+  bind(boolean, "Achievements/OsdMessages", achievements.osdMessages);
+  bind(boolean, "Achievements/OsdLeaderboards", achievements.osdLeaderboards);
+  bind(natural, "Achievements/OsdDurationMs", achievements.osdDurationMs);
+  bind(natural, "Achievements/OsdFadeInMs", achievements.osdFadeInMs);
+  bind(natural, "Achievements/OsdFadeOutMs", achievements.osdFadeOutMs);
+  bind(string,  "Achievements/OsdAccentColor", achievements.osdAccentColor);
+  bind(string,  "Achievements/OsdPosition", achievements.osdPosition);
+  bind(boolean, "Achievements/DebugLogging", achievements.debugLogging);
+  bind(boolean, "Achievements/DebugProgress", achievements.debugProgress);
+  bind(boolean, "Achievements/DebugMemory", achievements.debugMemory);
 
   bind(natural, "Rewind/Length", rewind.length);
   bind(natural, "Rewind/Frequency", rewind.frequency);
@@ -213,6 +233,9 @@ auto SettingsWindow::initialize() -> void {
   panelList.append(ListViewItem().setText("Hotkeys").setIcon(Icon::Device::Keyboard));
   panelList.append(ListViewItem().setText("Emulators").setIcon(Icon::Place::Server));
   panelList.append(ListViewItem().setText("Options").setIcon(Icon::Action::Settings));
+#if ARES_ENABLE_RCHEEVOS
+  panelList.append(ListViewItem().setText("Achievements").setIcon(Icon::Action::Bookmark));
+#endif
   panelList.append(ListViewItem().setText("Firmware").setIcon(Icon::Emblem::Binary));
   panelList.append(ListViewItem().setText("Paths").setIcon(Icon::Emblem::Folder));
   panelList.append(ListViewItem().setText("Drivers").setIcon(Icon::Place::Settings));
@@ -227,6 +250,9 @@ auto SettingsWindow::initialize() -> void {
   panelContainer.append(hotkeySettings, Size{~0, ~0});
   panelContainer.append(emulatorSettings, Size{~0, ~0});
   panelContainer.append(optionSettings, Size{~0, ~0});
+#if ARES_ENABLE_RCHEEVOS
+  panelContainer.append(achievementSettings, Size{~0, ~0});
+#endif
   panelContainer.append(firmwareSettings, Size{~0, ~0});
   panelContainer.append(pathSettings, Size{~0, ~0});
   panelContainer.append(driverSettings, Size{~0, ~0});
@@ -240,6 +266,9 @@ auto SettingsWindow::initialize() -> void {
   hotkeySettings.construct();
   emulatorSettings.construct();
   optionSettings.construct();
+#if ARES_ENABLE_RCHEEVOS
+  achievementSettings.construct();
+#endif
   firmwareSettings.construct();
   pathSettings.construct();
   driverSettings.construct();
@@ -280,6 +309,9 @@ auto SettingsWindow::eventChange() -> void {
   hotkeySettings.setVisible(false);
   emulatorSettings.setVisible(false);
   optionSettings.setVisible(false);
+#if ARES_ENABLE_RCHEEVOS
+  achievementSettings.setVisible(false);
+#endif
   firmwareSettings.setVisible(false);
   pathSettings.setVisible(false);
   driverSettings.setVisible(false);
@@ -295,6 +327,9 @@ auto SettingsWindow::eventChange() -> void {
     if(item.text() == "Hotkeys"  ) found = true, hotkeySettings.setVisible();
     if(item.text() == "Emulators") found = true, emulatorSettings.setVisible();
     if(item.text() == "Options"  ) found = true, optionSettings.setVisible();
+#if ARES_ENABLE_RCHEEVOS
+    if(item.text() == "Achievements") found = true, achievementSettings.setVisible();
+#endif
     if(item.text() == "Firmware" ) found = true, firmwareSettings.setVisible();
     if(item.text() == "Paths"    ) found = true, pathSettings.setVisible();
     if(item.text() == "Drivers"  ) found = true, driverSettings.setVisible();

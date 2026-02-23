@@ -57,6 +57,9 @@ struct OpenGL : OpenGLSurface {
   auto setShader(const string& pathname) -> void;
   auto clear() -> void;
   auto lock(u32*& data, u32& pitch) -> bool;
+  auto setOverlay(const u32* data, u32 width, u32 height, s32 x, s32 y) -> void;
+  auto clearOverlay() -> void;
+  auto renderOverlay() -> void;
   auto output() -> void;
   auto initialize(const string& shader) -> bool;
   auto terminate() -> void;
@@ -69,6 +72,10 @@ struct OpenGL : OpenGLSurface {
   u32 outputY = 0;
   u32 outputWidth = 0;
   u32 outputHeight = 0;
+  u32 targetX = 0;
+  u32 targetY = 0;
+  u32 targetWidth = 0;
+  u32 targetHeight = 0;
   struct Setting {
     string name;
     string value;
@@ -80,6 +87,20 @@ struct OpenGL : OpenGLSurface {
   };
   set<Setting> settings;
   bool initialized = false;
+
+  struct Overlay {
+    std::vector<u32> pixels;
+    u32 width = 0;
+    u32 height = 0;
+    s32 x = 0;
+    s32 y = 0;
+    bool visible = false;
+    bool dirty = false;
+    GLuint texture = 0;
+    GLuint program = 0;
+    GLuint vao = 0;
+    GLuint vbo = 0;
+  } overlay;
 };
 
 #include "texture.hpp"

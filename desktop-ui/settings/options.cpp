@@ -1,10 +1,18 @@
 auto OptionSettings::construct() -> void {
   setCollapsible();
   setVisible(false);
+  bool suppressOptionToggle = false;
 
   commonSettingsLabel.setText("Emulator Options").setFont(Font().setBold());
 
   rewind.setText("Rewind").setChecked(settings.general.rewind).onToggle([&] {
+    if(suppressOptionToggle) return;
+    if(retroAchievements.hardcore() && rewind.checked()) {
+      suppressOptionToggle = true;
+      rewind.setChecked(false);
+      suppressOptionToggle = false;
+      return;
+    }
     settings.general.rewind = rewind.checked();
     program.rewindReset();
   }).doToggle();
@@ -12,6 +20,13 @@ auto OptionSettings::construct() -> void {
     rewindHint.setText("Allows you to reverse time via the rewind hotkey").setFont(Font().setSize(7.0)).setForegroundColor(SystemColor::Sublabel);
 
   runAhead.setText("Run-Ahead").setEnabled(co_serializable()).setChecked(settings.general.runAhead && co_serializable()).onToggle([&] {
+    if(suppressOptionToggle) return;
+    if(retroAchievements.hardcore() && runAhead.checked()) {
+      suppressOptionToggle = true;
+      runAhead.setChecked(false);
+      suppressOptionToggle = false;
+      return;
+    }
     settings.general.runAhead = runAhead.checked() && co_serializable();
     program.runAheadUpdate();
   });

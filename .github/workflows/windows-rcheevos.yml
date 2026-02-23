@@ -1,0 +1,86 @@
+name: Windows RCheevos build
+
+on:
+  push:
+    branches:
+      - feat/ra-beta
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  build-windows-rcheevos:
+    name: ares-windows-x64-rcheevos
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Install MSYS2 dependencies
+        uses: msys2/setup-msys2@40677d36a502eb2cf0fb808cc9dec31bf6152638
+        with:
+          msystem: clang64
+          install: >-
+            make
+            git
+            cmake
+            ccache
+            ninja
+            mingw-w64-clang-x86_64-clang
+            mingw-w64-clang-x86_64-curl
+            mingw-w64-clang-x86_64-openssl
+
+      - name: Checkout source code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-tags: true
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup MSYS2 Git environment
+        run: |
+          git config core.autocrlf true
+
+      - name: Debug dependency install
+        run: |
+          echo "MINGW_PREFIX=$MINGW_PREFIX"
+          ls -la /clang64/include/openssl || true
+          ls -la /clang64/lib/libssl* || true
+          ls -la /clang64/lib/libcrypto* || true
+          ls -la /clang64/lib/cmake/CURL || true
+
+      - name: Configure
+        run: |
+          cmake --preset windows-ci-mingw-native \
+            -DARES_BUILD_OFFICIAL=OFF \
+            -DARES_ENABLE_RCHEEVOS=ON \
+            -DCMAKE_PREFIX_PATH=/clang64 \
+            -DOPENSSL_ROOT_DIR=/clang64
+
+      - name: Build
+        run: |
+          cmake --build build --parallel
+
+      - name: Compress build artifacts
+        run: |
+          tar -cvJf ares-windows-x64-rcheevos.tar.xz -C build/desktop-ui/rundir/ .
+
+      - name: Upload build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ares-windows-x64-rcheevos-${{ github.sha }}
+          path: ares-windows-x64-rcheevos.tar.xz
+
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ares-windows-x64-rcheevos-pdbs-${{ github.sha }}
+          path: build/PDBs/*
+          if-no-files-found: warn
