@@ -18,6 +18,12 @@ jobs:
     name: Build ares (auxiliary)
     uses: ./.github/workflows/build-aux.yml
     secrets: inherit
+  build-windows-ra:
+    name: Build ares (Windows MSVC x64, RA)
+    if: github.ref == 'refs/heads/feat/ra-win'
+    uses: ./.github/workflows/build-windows-ra.yml
+    permissions:
+      contents: read
   release:
     name: Release
     needs: build

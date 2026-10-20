@@ -1,0 +1,47 @@
+name: Build Windows RetroAchievements
+on:
+  workflow_call:
+jobs:
+  build:
+    name: Windows MSVC x64 with RetroAchievements
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        fetch-tags: true
+        fetch-depth: 0
+    - name: Prepare RetroAchievements dependencies
+      run: .github/scripts/setup_windows_ra_deps.sh
+    - name: Build desktop-ui with RetroAchievements and RAIntegration
+      env:
+        ARES_PLATFORM_NAME: windows-msvc-x64-ra
+        CROSS_COMPILE: 'false'
+        TARGET_PRESET: windows-ci-msvc-ra
+        ARES_BUILD_TARGET: desktop-ui
+      run: |
+        if .github/scripts/build_windows.sh 2>&1 | tee windows-ra-build.log; then
+          echo "Windows RetroAchievements desktop-ui build passed"
+        else
+          grep -niE 'raintegration|retroachievements|rcheevos|error [A-Z]+[0-9]+' windows-ra-build.log || true
+          echo '::error title=Windows RA build failed::Check RAIntegration and RetroAchievements diagnostics above.'
+          exit 1
+        fi
+    - name: Package Windows RA build
+      run: tar -cJf ares-windows-msvc-x64-ra.tar.xz -C build/desktop-ui/rundir .
+    - name: Upload Windows RA build
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: ares-windows-msvc-x64-ra
+        path: ares-windows-msvc-x64-ra.tar.xz
+        if-no-files-found: error
+    - name: Upload RA build log on failure
+      if: failure()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: ares-windows-msvc-x64-ra-log
+        path: windows-ra-build.log
+        if-no-files-found: ignore
