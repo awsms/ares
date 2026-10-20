@@ -49,6 +49,14 @@ jobs:
           echo '::error title=Windows RA build failed::Check RAIntegration and RetroAchievements diagnostics above.'
           exit 1
         fi
+    - name: Package Windows RA build
+      run: tar -cJf ares-windows-msvc-x64-ra.tar.xz -C build/desktop-ui/rundir .
+    - name: Upload Windows RA build
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: ares-windows-msvc-x64-ra
+        path: ares-windows-msvc-x64-ra.tar.xz
+        if-no-files-found: error
     - name: Upload RA build log on failure
       if: failure()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
