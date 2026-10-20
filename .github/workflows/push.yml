@@ -9,6 +9,7 @@ permissions:
 jobs:
   build:
     name: Build ares (primary)
+    if: github.ref != 'refs/heads/feat/ra-win'
     uses: ./.github/workflows/build.yml
     secrets: inherit
     with:
@@ -16,6 +17,7 @@ jobs:
       official: ${{ github.ref_name == 'master' || github.ref_type == 'tag' }}
   build-aux:
     name: Build ares (auxiliary)
+    if: github.ref != 'refs/heads/feat/ra-win'
     uses: ./.github/workflows/build-aux.yml
     secrets: inherit
   build-windows-ra:
@@ -26,6 +28,7 @@ jobs:
       contents: read
   release:
     name: Release
+    if: github.ref != 'refs/heads/feat/ra-win'
     needs: build
     secrets: inherit
     uses: ./.github/workflows/release.yml
