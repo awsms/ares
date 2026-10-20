@@ -142,6 +142,16 @@
       "inherits": ["windows-ci-base"]
     },
     {
+      "name": "windows-ci-msvc-ra",
+      "displayName": "Windows for CI (x64 MSVC, RetroAchievements)",
+      "inherits": ["windows-ci-msvc-native"],
+      "cacheVariables": {
+        "ARES_ENABLE_RCHEEVOS": true,
+        "ARES_SKIP_DEPS": true,
+        "CMAKE_PREFIX_PATH": "${sourceDir}/.deps/ares-deps-windows-x64"
+      }
+    },
+    {
       "name": "windows-ci-msvc-cross",
       "displayName": "Windows for CI (arm64 MSVC)",
       "description": "Single-arch binary for building on Github Actions",

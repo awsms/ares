@@ -11,7 +11,11 @@ fi
 
 cmake --preset $TARGET_PRESET
 pushd build
-cmake --build . --config RelWithDebInfo
+if [ -n "${ARES_BUILD_TARGET:-}" ]; then
+  cmake --build . --target "$ARES_BUILD_TARGET" --config RelWithDebInfo
+else
+  cmake --build . --config RelWithDebInfo
+fi
 
 if [ "$CROSS_COMPILE" = true ] || [ "$ARES_PLATFORM_NAME" = "windows-arm64" ]; then
   cp ../.deps/ares-deps-windows-arm64/lib/*.pdb desktop-ui/rundir/
